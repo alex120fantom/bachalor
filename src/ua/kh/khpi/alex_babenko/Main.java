@@ -11,6 +11,10 @@ public class Main {
 	private static Integer n = 5; // размерность входящих векоторов
 	private static double[][] b = new double[n][m]; // коефициенты весов
 	private static double[][] t = new double[m][n]; // значения
+	
+	private static double[][] bCopy = new double[n][m]; // коефициенты весов;
+	private static double[][] tCopy = new double[m][n]; // значения
+	
 	private static double L = 2;
 	private static double p = 0.8;
 	
@@ -33,10 +37,14 @@ public class Main {
 
 		fillB(b, w1);
 		fillT(t, w2);
-
+		
+		makeCopies();
 		while (true) {
-			System.out.println("----changesCounter---- " + somethingChanged);
-			if (somethingChanged) {
+			startEra(input);
+			System.out.println("----changesCounter---- " + (Arrays.deepEquals(b, bCopy) && Arrays.deepEquals(t, tCopy)));
+			if (needNewEra()) {
+				makeCopies();
+				
 				startEra(input);
 			} else {
 				break;
@@ -46,6 +54,23 @@ public class Main {
 		printB(b);
 		printT(t);
 
+	}
+
+	private static boolean needNewEra() {
+		return !(Arrays.deepEquals(b, bCopy) && Arrays.deepEquals(t, tCopy));
+	}
+
+	private static void makeCopies() {
+		for (int i = 0; i < b.length; i++) {
+			for (int j = 0; j < b[i].length; j++) {
+				bCopy[i][j] = b[i][j]; 
+			}
+		}
+		for (int i = 0; i < t.length; i++) {
+			for (int j = 0; j < t[i].length; j++) {
+				tCopy[i][j] = t[i][j]; 
+			}
+		}
 	}
 	
 	private static void startEra(double[][] input) {
