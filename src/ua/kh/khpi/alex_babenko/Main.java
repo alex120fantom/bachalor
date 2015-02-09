@@ -16,7 +16,7 @@ public class Main {
 	private static double[][] tCopy = new double[m][n]; // значения
 	
 	private static double L = 2;
-	private static double p = 0.8;
+	private static double p = 0.49;
 	
 	private static double w1 = 1 / (1 + n.doubleValue()); // изначальные веса
 	private static double w2 = 1;
@@ -38,17 +38,15 @@ public class Main {
 		fillB(b, w1);
 		fillT(t, w2);
 		
-		makeCopies();
 		while (true) {
 			startEra(input);
-			System.out.println("----changesCounter---- " + (Arrays.deepEquals(b, bCopy) && Arrays.deepEquals(t, tCopy)));
+			System.out.println("----needNewEra---- " + needNewEra());
 			if (needNewEra()) {
 				makeCopies();
-				
-				startEra(input);
+				continue;
 			} else {
 				break;
-			} 
+			}
 		}
 
 		printB(b);
@@ -57,7 +55,7 @@ public class Main {
 	}
 
 	private static boolean needNewEra() {
-		return !(Arrays.deepEquals(b, bCopy) && Arrays.deepEquals(t, tCopy));
+		return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
 	}
 
 	private static void makeCopies() {
