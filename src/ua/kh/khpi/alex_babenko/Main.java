@@ -5,7 +5,7 @@ import java.util.Collections;
 
 public class Main {
 	
-	private static int changesCounter;
+	private static boolean somethingChanged = true;
 
 	private static Integer m = 4; // макс. число кластеров
 	private static Integer n = 5; // размерность входящих векоторов
@@ -35,8 +35,8 @@ public class Main {
 		fillT(t, w2);
 
 		while (true) {
-			System.out.println("----changesCounter---- " + changesCounter);
-			if (changesCounter == 0) {
+			System.out.println("----changesCounter---- " + somethingChanged);
+			if (somethingChanged) {
 				startEra(input);
 			} else {
 				break;
@@ -59,7 +59,7 @@ public class Main {
 	}
 
 	private static void resetChangesCounter() {
-		changesCounter = 0;
+		somethingChanged = false;
 	}
 	
 	private static void executeCalculations(double[] input, double[] UinputY) {
@@ -76,7 +76,7 @@ public class Main {
 		System.out.println("newImage: " + newImage);
 
 		if (newImage) {
-			changesCounter++;
+			somethingChanged = true;
 			for (int j = 0; j < b.length; j++) {
 				b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
 			}
