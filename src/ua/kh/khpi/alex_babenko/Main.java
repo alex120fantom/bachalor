@@ -4,64 +4,90 @@ import java.util.Arrays;
 import java.util.Collections;
 
 public class Main {
+	
+	private static int changesCounter;
 
+	private static Integer m = 4; // макс. число кластеров
+	private static Integer n = 5; // размерность входящих векоторов
+	private static double[][] b = new double[n][m]; // коефициенты весов
+	private static double[][] t = new double[m][n]; // значения
+	private static double L = 2;
+	private static double p = 0.8;
+	
+	private static double w1 = 1 / (1 + n.doubleValue()); // изначальные веса
+	private static double w2 = 1;
+	
+	private static double[][] input = { 
+			{ 1, 1, 0, 0, 0 }, 
+			{ 0, 0, 1, 1, 0 },
+			{ 1, 0, 0, 0, 0 }, 
+			{ 0, 0, 0, 1, 1 } };
+
+
+	/**
+	 * Starting the program
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
-
-		// Initialize
-		int m = 4; // макс. число кластеров
-		Integer n = 5; // размерность входящих векоторов
-		double p = 0.8; // параметр подобия
-		double L = 2; // параметр для адаптации весов
-
-		double[][] input = { 
-				{ 1, 1, 0, 0, 0 }, 
-				{ 0, 0, 1, 1, 0 },
-				{ 1, 0, 0, 0, 0 }, 
-				{ 0, 0, 0, 1, 1 } };
-
-		double w1 = 1 / (1 + n.doubleValue()); // изначальные веса
-		double w2 = 1;
-
-		double[][] b = new double[n][m]; // коефициенты весов
-		double[][] t = new double[m][n]; // значения
 
 		fillB(b, w1);
 		fillT(t, w2);
 
-		
-		// Counting
-		for (int i = 0; i < input.length; i++) {
-			
-			double[] UinputY = countUinputY(input[i], b);
-			
-			int neuronWinner = findNeuronWinner(UinputY);
-			
-			double[] UoutZ = countUOutZ(input[i], t[neuronWinner]);
-
-			double neuronNorma = countNorma(UoutZ);
-			double inputNorma = countNorma(input[i]);
-			
-			System.out.println("neuronNorma=" + neuronNorma + " inputNorma="+inputNorma);
-
-			boolean newImage = isNewImage(inputNorma, neuronNorma, p);
-			System.out.println("newImage: " + newImage);
-
-			if (newImage) {
-				for (int j = 0; j < b.length; j++) {
-					b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
-				}
-				for (int j = 0; j < t[neuronWinner].length; j++) {
-					t[neuronWinner][j] = UoutZ[j];
-				}
+		while (true) {
+			System.out.println("----changesCounter---- " + changesCounter);
+			if (changesCounter == 0) {
+				startEra(input);
 			} else {
-				UinputY[neuronWinner] = -1;
-				System.out.println("!!!!!no such!!!!");
-			}
+				break;
+			} 
 		}
 
 		printB(b);
 		printT(t);
 
+	}
+	
+	private static void startEra(double[][] input) {
+		resetChangesCounter();
+		for (int i = 0; i < input.length; i++) {
+
+			double[] UinputY = countUinputY(input[i], b);
+			executeCalculations(input[i], UinputY);
+		
+		}
+	}
+
+	private static void resetChangesCounter() {
+		changesCounter = 0;
+	}
+	
+	private static void executeCalculations(double[] input, double[] UinputY) {
+		int neuronWinner = findNeuronWinner(UinputY);
+		
+		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
+
+		double neuronNorma = countNorma(UoutZ);
+		double inputNorma = countNorma(input);
+		
+		System.out.println("neuronNorma=" + neuronNorma + " inputNorma="+inputNorma);
+
+		boolean newImage = isNewImage(inputNorma, neuronNorma, p);
+		System.out.println("newImage: " + newImage);
+
+		if (newImage) {
+			changesCounter++;
+			for (int j = 0; j < b.length; j++) {
+				b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
+			}
+			for (int j = 0; j < t[neuronWinner].length; j++) {
+				t[neuronWinner][j] = UoutZ[j];
+			}
+		} else {		// again to find new neuron winner
+			UinputY[neuronWinner] = -1;
+			System.out.println("!!!!!no such!!!!");
+			executeCalculations(input, UinputY);
+		}
 	}
 
 	private static double[] countUOutZ(double[] inputLine, double[] t) {
