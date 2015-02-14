@@ -8,21 +8,20 @@ public class Program {
 	private double[][] input = null;
 	private String fileName;
 
-	private Integer m;// = 4; // макс. число кластеров
-	private Integer n;// = 5; // размерность входящих векоторов
+	private Integer m; // макс. число кластеров
+	private Integer n; // размерность входящих векоторов
 
-	private double[][] b;// = new double[n][m]; // коефициенты весов
-	private double[][] t;// = new double[m][n]; // значения
-	private double[][] bCopy;// = new double[n][m]; // коефициенты весов;
-	private double[][] tCopy;// = new double[m][n]; // значения
+	private double[][] b; // коефициенты весов
+	private double[][] t; // значения
+	private double[][] bCopy; // коефициенты весов;
+	private double[][] tCopy; // значения
 
 	private double L;
-	private double p;// = 0.8;
+	private double p;
 
-	private double w1;// = 1 / (1 + n.doubleValue()); // изначальные веса
-	private double w2;// = 1;
+	private double w1; // изначальные веса
+	private double w2;
 
-	
 	public Program(String fileName) {
 		this.fileName = fileName;
 		initializeSystem();
@@ -46,12 +45,12 @@ public class Program {
 		this.w2 = 1;
 		fillB();
 		fillT();
-		
+
 	}
 
 	public void execute() throws IOException {
 		educate();
-		double[] virus = {1, 1, 0, 1, 0};
+		double[] virus = { 1, 1, 0, 1, 0 };
 
 		printB(b);
 		printT(t);
@@ -62,7 +61,7 @@ public class Program {
 	public void educate() {
 		while (true) {
 			startEra(input);
-//			System.out.println("----needNewEra---- " + needNewEra());
+			// System.out.println("----needNewEra---- " + needNewEra());
 			if (needNewEra()) {
 				makeCopies();
 				continue;
@@ -71,19 +70,63 @@ public class Program {
 			}
 		}
 	}
-	
+
 	public void identify(String fileName) {
 		try {
 			double[][] potentialViruses = Util.readMatrixFromFile(fileName);
 			for (double[] line : potentialViruses) {
 				boolean isVirus = executeIdentifying(line);
-				System.out.println(Arrays.toString(line) + "is virus: " + isVirus);
+				System.out.println(Arrays.toString(line) + "is virus: "
+						+ isVirus);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 
+	private void executeEducation(double[] input, double[] UinputY) {
+		int neuronWinner = findNeuronWinner(UinputY);
+
+		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
+
+		double neuronNorma = countNorma(UoutZ);
+		double inputNorma = countNorma(input);
+
+		// System.out.println("neuronNorma=" + neuronNorma + " inputNorma="
+		// + inputNorma);
+
+		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
+		// System.out.println("newImage: " + newImage);
+
+		if (newImage) {
+			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
+		} else { // again to find new neuron winner
+			UinputY[neuronWinner] = -1;
+			// System.out.println("!!!!!no such!!!!");
+			executeEducation(input, UinputY);
+		}
+	}
+
+	private boolean executeIdentifying(double[] input) {
+		double[] UinputY = countUinputY(input);
+		int neuronWinner = findNeuronWinner(UinputY);
+		if (neuronWinner < 0) {
+			return false;
+		}
+		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
+		double neuronNorma = countNorma(UoutZ);
+		double inputNorma = countNorma(input);
+
+		System.out.println("neuronNorma=" + neuronNorma + " inputNorma="
+				+ inputNorma);
+
+		boolean identified = isImageIdentified(inputNorma, neuronNorma);
+		if (identified) {
+			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
+			return true;
+		}
+		return false;
+	}
 
 	private boolean needNewEra() {
 		return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
@@ -103,59 +146,10 @@ public class Program {
 	}
 
 	private void startEra(double[][] input) {
-		// resetChangesCounter();
 		for (int i = 0; i < input.length; i++) {
-
 			double[] UinputY = countUinputY(input[i]);
 			executeEducation(input[i], UinputY);
-
 		}
-	}
-
-	private void executeEducation(double[] input, double[] UinputY) {
-		int neuronWinner = findNeuronWinner(UinputY);
-
-		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
-
-		double neuronNorma = countNorma(UoutZ);
-		double inputNorma = countNorma(input);
-
-//		System.out.println("neuronNorma=" + neuronNorma + " inputNorma="
-//				+ inputNorma);
-
-		boolean newImage = isIdentified(inputNorma, neuronNorma);
-//		System.out.println("newImage: " + newImage);
-
-		if (newImage) {
-			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
-		} else { // again to find new neuron winner
-			UinputY[neuronWinner] = -1;
-//			System.out.println("!!!!!no such!!!!");
-			executeEducation(input, UinputY);
-		}
-	}
-	
-	private boolean executeIdentifying(double[] input) {
-		double[] UinputY = countUinputY(input);
-		int neuronWinner = findNeuronWinner(UinputY);
-		if (neuronWinner < 0) {
-			return false;
-		}
-		
-		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
-		
-		double neuronNorma = countNorma(UoutZ);
-		double inputNorma = countNorma(input);
-		
-		System.out.println("neuronNorma=" + neuronNorma + " inputNorma="
-				+ inputNorma);
-		boolean identified = isIdentified(inputNorma, neuronNorma);
-		
-		if (identified) {
-			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
-			return true;
-		}
-		return false;
 	}
 
 	private void updateKnowledges(int neuronWinner, double[] UoutZ,
@@ -176,7 +170,7 @@ public class Program {
 		return UoutZ;
 	}
 
-	private boolean isIdentified(double inputNorma, double neuronNorma) {
+	private boolean isImageIdentified(double inputNorma, double neuronNorma) {
 		return (neuronNorma / inputNorma) > p;
 	}
 
@@ -189,7 +183,7 @@ public class Program {
 			}
 			j[i] = resultJ;
 		}
-//		System.out.println("J results: " + Arrays.toString(j));
+		// System.out.println("J results: " + Arrays.toString(j));
 		return j;
 	}
 
@@ -232,7 +226,6 @@ public class Program {
 		}
 		return t;
 	}
-	
 
 	private static void printB(double[][] b) {
 		System.out.println("B: ");
