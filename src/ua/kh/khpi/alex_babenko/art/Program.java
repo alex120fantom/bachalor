@@ -3,7 +3,7 @@ package ua.kh.khpi.alex_babenko.art;
 import java.io.IOException;
 import java.util.Arrays;
 
-public class Program {
+public class Program implements Runnable {
 
 	private double[][] input = null;
 	private String fileName;
@@ -21,6 +21,12 @@ public class Program {
 
 	private double w1; // изначальные веса
 	private double w2;
+	
+	private String fileNamePotentialViruses;
+
+	public void setFileNamePotentialViruses(String fileNamePotentialViruses) {
+		this.fileNamePotentialViruses = fileNamePotentialViruses;
+	}
 
 	public Program(String fileName) {
 		this.fileName = fileName;
@@ -48,15 +54,15 @@ public class Program {
 
 	}
 
-	public void execute() throws IOException {
-		educate();
-		double[] virus = { 1, 1, 0, 1, 0 };
-
-		printB(b);
-		printT(t);
-
-		System.out.println("virus: " + executeIdentifying(virus));
-	}
+//	public void execute() throws IOException {
+//		educate();
+//		double[] virus = { 1, 1, 0, 1, 0 };
+//
+//		printB(b);
+//		printT(t);
+//
+//		System.out.println("virus: " + executeIdentifying(virus));
+//	}
 
 	public void educate() {
 		while (true) {
@@ -71,16 +77,20 @@ public class Program {
 		}
 	}
 
-	public void identify(String fileName) {
+	public void identify() {
 		try {
-			double[][] potentialViruses = Util.readMatrixFromFile(fileName);
-			for (double[] line : potentialViruses) {
-				boolean isVirus = executeIdentifying(line);
-				System.out.println(Arrays.toString(line) + "is virus: "
-						+ isVirus);
-			}
+			double[][] potentialViruses = Util.readMatrixFromFile(fileNamePotentialViruses);
+			printViruses(potentialViruses);
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	private void printViruses(double[][] potentialViruses) {
+		for (double[] line : potentialViruses) {
+			boolean isVirus = executeIdentifying(line);
+			System.out.println(Arrays.toString(line) + "is virus: "
+					+ isVirus);
 		}
 	}
 
@@ -245,6 +255,20 @@ public class Program {
 			}
 			System.out.println();
 		}
+	}
+
+	@Override
+	public void run() {
+		this.educate();
+		while (true) {
+			this.identify();
+			try {
+				Thread.currentThread().sleep(6000L);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		
 	}
 
 }
