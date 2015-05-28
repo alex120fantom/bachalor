@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 public class Program implements Runnable {
 
+	private static final long ONE_MINUTE = 60_000L;
 	private double[][] input = null;
 	private String fileName;
 
@@ -23,10 +24,6 @@ public class Program implements Runnable {
 	private double w2;
 	
 	private String fileNamePotentialViruses;
-
-	public void setFileNamePotentialViruses(String fileNamePotentialViruses) {
-		this.fileNamePotentialViruses = fileNamePotentialViruses;
-	}
 
 	public Program(String fileName) {
 		this.fileName = fileName;
@@ -51,20 +48,31 @@ public class Program implements Runnable {
 		this.w2 = 1;
 		fillB();
 		fillT();
-
+	}
+	
+	private double[][] fillB() {
+		for (int i = 0; i < b.length; i++) {
+			for (int j = 0; j < b[i].length; j++) {
+				b[i][j] = w1;
+			}
+		}
+		return b;
 	}
 
-//	public void execute() throws IOException {
-//		educate();
-//		double[] virus = { 1, 1, 0, 1, 0 };
-//
-//		printB(b);
-//		printT(t);
-//
-//		System.out.println("virus: " + executeIdentifying(virus));
-//	}
+	private double[][] fillT() {
+		for (int i = 0; i < t.length; i++) {
+			for (int j = 0; j < t[i].length; j++) {
+				t[i][j] = w2;
+			}
+		}
+		return t;
+	}
+	
+	public void setFileNamePotentialViruses(String fileNamePotentialViruses) {
+		this.fileNamePotentialViruses = fileNamePotentialViruses;
+	}
 
-	public void educate() {
+	private void educate() {
 		while (true) {
 			startEra(input);
 			// System.out.println("----needNewEra---- " + needNewEra());
@@ -76,8 +84,54 @@ public class Program implements Runnable {
 			}
 		}
 	}
+	
+	private void startEra(double[][] input) {
+		for (int i = 0; i < input.length; i++) {
+			double[] UinputY = countUinputY(input[i]);
+			executeEducation(input[i], UinputY);
+		}
+	}
 
-	public void identify() {
+	private void executeEducation(double[] input, double[] UinputY) {
+		int neuronWinner = findNeuronWinner(UinputY);
+
+		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
+
+		double neuronNorma = countNorma(UoutZ);
+		double inputNorma = countNorma(input);
+
+		// System.out.println("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
+
+		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
+		// System.out.println("newImage: " + newImage);
+
+		if (newImage) {
+			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
+		} else { // again to find new neuron winner
+			UinputY[neuronWinner] = -1;
+			// System.out.println("!!!!!no such!!!!");
+			executeEducation(input, UinputY);
+		}
+	}
+	
+	private boolean needNewEra() {
+		return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
+	}
+
+	private void makeCopies() {
+		for (int i = 0; i < b.length; i++) {
+			for (int j = 0; j < b[i].length; j++) {
+				bCopy[i][j] = b[i][j];
+			}
+		}
+		for (int i = 0; i < t.length; i++) {
+			for (int j = 0; j < t[i].length; j++) {
+				tCopy[i][j] = t[i][j];
+			}
+		}
+	}
+
+	private void identify() {
 		try {
 			double[][] potentialViruses = Util.readMatrixFromFile(fileNamePotentialViruses);
 			printViruses(potentialViruses);
@@ -91,29 +145,6 @@ public class Program implements Runnable {
 			boolean isVirus = executeIdentifying(line);
 			System.out.println(Arrays.toString(line) + "is virus: "
 					+ isVirus);
-		}
-	}
-
-	private void executeEducation(double[] input, double[] UinputY) {
-		int neuronWinner = findNeuronWinner(UinputY);
-
-		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
-
-		double neuronNorma = countNorma(UoutZ);
-		double inputNorma = countNorma(input);
-
-		// System.out.println("neuronNorma=" + neuronNorma + " inputNorma="
-		// + inputNorma);
-
-		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
-		// System.out.println("newImage: " + newImage);
-
-		if (newImage) {
-			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
-		} else { // again to find new neuron winner
-			UinputY[neuronWinner] = -1;
-			// System.out.println("!!!!!no such!!!!");
-			executeEducation(input, UinputY);
 		}
 	}
 
@@ -136,30 +167,6 @@ public class Program implements Runnable {
 			return true;
 		}
 		return false;
-	}
-
-	private boolean needNewEra() {
-		return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
-	}
-
-	private void makeCopies() {
-		for (int i = 0; i < b.length; i++) {
-			for (int j = 0; j < b[i].length; j++) {
-				bCopy[i][j] = b[i][j];
-			}
-		}
-		for (int i = 0; i < t.length; i++) {
-			for (int j = 0; j < t[i].length; j++) {
-				tCopy[i][j] = t[i][j];
-			}
-		}
-	}
-
-	private void startEra(double[][] input) {
-		for (int i = 0; i < input.length; i++) {
-			double[] UinputY = countUinputY(input[i]);
-			executeEducation(input[i], UinputY);
-		}
 	}
 
 	private void updateKnowledges(int neuronWinner, double[] UoutZ,
@@ -219,24 +226,6 @@ public class Program implements Runnable {
 		return norma;
 	}
 
-	private double[][] fillB() {
-		for (int i = 0; i < b.length; i++) {
-			for (int j = 0; j < b[i].length; j++) {
-				b[i][j] = w1;
-			}
-		}
-		return b;
-	}
-
-	private double[][] fillT() {
-		for (int i = 0; i < t.length; i++) {
-			for (int j = 0; j < t[i].length; j++) {
-				t[i][j] = w2;
-			}
-		}
-		return t;
-	}
-
 	private static void printB(double[][] b) {
 		System.out.println("B: ");
 		for (double[] lineB : b) {
@@ -263,12 +252,11 @@ public class Program implements Runnable {
 		while (true) {
 			this.identify();
 			try {
-				Thread.currentThread().sleep(6000L);
+				Thread.currentThread().sleep(ONE_MINUTE);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		
 	}
 
 }
