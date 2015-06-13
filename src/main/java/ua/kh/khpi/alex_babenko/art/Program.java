@@ -156,15 +156,14 @@ public class Program implements Runnable {
 	private List<Double[]> findViruses(double[][] potentialViruses) {
 		List<Double[]> viruses = new ArrayList<>();
 		for (double[] line : potentialViruses) {
-			boolean isVirus = executeIdentifying(line);
-			if (isVirus) {
+			if (isVirus(line)) {
 				viruses.add(ArrayUtils.toObject(line));
 			}
 		}
 		return viruses;
 	}
 
-	private boolean executeIdentifying(double[] input) {
+	private boolean isVirus(double[] input) {
 		double[] UinputY = countUinputY(input);
 		int neuronWinner = findNeuronWinner(UinputY);
 		if (neuronWinner < 0) {
@@ -252,26 +251,6 @@ public class Program implements Runnable {
 		}
 	}
 	
-	private static void printB(double[][] b) {
-		System.out.println("B: ");
-		for (double[] lineB : b) {
-			for (double valueB : lineB) {
-				System.out.print(valueB + " || ");
-			}
-			System.out.println();
-		}
-	}
-
-	private static void printT(double[][] t) {
-		System.out.println("T:");
-		for (double[] lineT : t) {
-			for (double valueT : lineT) {
-				System.out.print(valueT + " || ");
-			}
-			System.out.println();
-		}
-	}
-
 	@Override
 	public void run() {
 		this.educate();
