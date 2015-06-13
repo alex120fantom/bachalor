@@ -18,7 +18,7 @@ public class FileHelper {
 	public static double[][] readMatrixFromFile(String filename)
 			throws IOException {
 		int m = countLines(filename);
-		int n = countElements(filename);
+		int n = countLineSize(filename);
 		double[][] matrix = new double[m][n];
 		try {
 			@SuppressWarnings("resource")
@@ -61,7 +61,7 @@ public class FileHelper {
 		}
 	}
 
-	public static int countElements(String filename) throws IOException {
+	public static int countLineSize(String filename) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line;
 		try {

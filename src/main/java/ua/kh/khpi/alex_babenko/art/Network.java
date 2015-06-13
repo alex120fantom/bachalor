@@ -1,31 +1,18 @@
 package ua.kh.khpi.alex_babenko.art;
 
-import static ua.kh.khpi.alex_babenko.utils.PropertyEnum.NEURON_ADAPTATION_PARAMETER;
-import static ua.kh.khpi.alex_babenko.utils.PropertyEnum.NEURON_SIMILARITY_COFFICIENT;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
-import ua.kh.khpi.alex_babenko.utils.FileHelper;
-import ua.kh.khpi.alex_babenko.utils.PropertiesHelper;
-import ua.kh.khpi.alex_babenko.utils.PropertyEnum;
-
-public class Program implements Runnable {
+public class Network {
 	
-	private static final Logger LOG = Logger.getLogger(Program.class);
+	private static final Logger LOG = Logger.getLogger(Network.class);
 
-	private static final long READING_TIMEOUT = parseReadingTimeout();
-	private double[][] input = null;
-	private String fileName;
-
-	private Integer m; // макс. число кластеров
-	private Integer n; // размерность входящих векоторов
+	private double[][] knowledges;
+	private double[][] potentialViruses;
 
 	private double[][] b; // коефициенты весов
 	private double[][] t; // значения
@@ -38,72 +25,37 @@ public class Program implements Runnable {
 	private double w1; // изначальные веса
 	private double w2;
 	
-	private String fileNamePotentialViruses;
-
-	public Program(String fileName) {
-		this.fileName = fileName;
-		initializeSystem();
-	}
-
-	private void initializeSystem() {
+	public Network(int lines, Integer lineSize, double[][] knowleges, double p, double L) {
 		LOG.debug("System initialization was started");
-		try {
-			this.m = FileHelper.countLines(fileName);
-			this.n = FileHelper.countElements(fileName);
-			input = FileHelper.readMatrixFromFile(fileName);
-		} catch (IOException e) {
-			LOG.error(e);
-		}
-		this.b = new double[n][m];
-		this.t = new double[m][n];
-		this.bCopy = new double[n][m];
-		this.tCopy = new double[m][n];
-		this.L = parseL();
-		this.p = parseP();
-		this.w1 = 1 / (1 + n.doubleValue()); // изначальные веса
+		this.knowledges = knowleges;
+		this.p = p;
+		this.L = L;
+		this.w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
 		this.w2 = 1;
-		fillB();
-		fillT();
+		this.b = fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
+		this.t = fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
+		this.bCopy = new double[lineSize][lines];
+		this.tCopy = new double[lines][lineSize];
 		LOG.debug("System initialization was finished successcfully");
 	}
 
-	private double parseP() {
-		return Double.parseDouble(PropertiesHelper.getPropertyByCode(NEURON_SIMILARITY_COFFICIENT));
-	}
-
-	private double parseL() {
-		return Double.parseDouble(PropertiesHelper.getPropertyByCode(NEURON_ADAPTATION_PARAMETER));
+	public void setPotentialViruses(double[][] potentialViruses) {
+		this.potentialViruses = potentialViruses;
 	}
 	
-	private static long parseReadingTimeout() {
-		return Long.parseLong(PropertiesHelper.getPropertyByCode(PropertyEnum.FILE_READING_TIMEOUT));
-	}
-
-	private double[][] fillB() {
-		for (int i = 0; i < b.length; i++) {
-			for (int j = 0; j < b[i].length; j++) {
-				b[i][j] = w1;
+	private double[][] fillArray(int height, int width, double value) {
+		double[][] array = new double[height][width];
+		for (int i = 0; i < height; i++) {
+			for (int j = 0; j < width; j++) {
+				array[i][j] = value;
 			}
 		}
-		return b;
-	}
-
-	private double[][] fillT() {
-		for (int i = 0; i < t.length; i++) {
-			for (int j = 0; j < t[i].length; j++) {
-				t[i][j] = w2;
-			}
-		}
-		return t;
+		return array;
 	}
 	
-	public void setFileNamePotentialViruses(String fileNamePotentialViruses) {
-		this.fileNamePotentialViruses = fileNamePotentialViruses;
-	}
-
-	private void educate() {
+	public void educate() {
 		while (true) {
-			startEra(input);
+			startEra(knowledges);
 			LOG.trace("Need new era for education: " + needNewEra());
 			if (needNewEra()) {
 				makeCopies();
@@ -162,17 +114,7 @@ public class Program implements Runnable {
 		}
 	}
 
-	private List<Double[]> identify() {
-		try {
-			double[][] potentialViruses = FileHelper.readMatrixFromFile(fileNamePotentialViruses);
-			return findViruses(potentialViruses);
-		} catch (IOException e) {
-			LOG.error(e);
-			throw new RuntimeException(e);
-		}
-	}
-
-	private List<Double[]> findViruses(double[][] potentialViruses) {
+	public List<Double[]> findViruses() {
 		List<Double[]> viruses = new ArrayList<>();
 		for (double[] line : potentialViruses) {
 			if (isVirus(line)) {
@@ -257,32 +199,6 @@ public class Program implements Runnable {
 			norma += i;
 		}
 		return norma;
-	}
-
-	private static void printResult(List<Double[]> result) {
-		LOG.warn("VIRUSES: ");
-		for (Double[] doubles : result) {
-			String line = StringUtils.EMPTY;
-			for (Double value : doubles) {
-				line += value.intValue() + " "; 
-			}
-			LOG.warn(line);
-		}
-	}
-	
-	@Override
-	public void run() {
-		this.educate();
-		while (true) {
-			List<Double[]> viruses = identify();
-			printResult(viruses);
-			try {
-				LOG.info("Waiting for the next file.");
-				Thread.sleep(READING_TIMEOUT);
-			} catch (InterruptedException e) {
-				LOG.error(e);
-			}
-		}
 	}
 
 }
