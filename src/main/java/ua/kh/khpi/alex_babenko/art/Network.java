@@ -7,6 +7,8 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import ua.kh.khpi.alex_babenko.utils.ArrayHelper;
+
 public class Network {
 	
 	private static final Logger LOG = Logger.getLogger(Network.class);
@@ -32,8 +34,8 @@ public class Network {
 		this.L = L;
 		this.w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
 		this.w2 = 1;
-		this.b = fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
-		this.t = fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
+		this.b = ArrayHelper.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
+		this.t = ArrayHelper.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
 		this.bCopy = new double[lineSize][lines];
 		this.tCopy = new double[lines][lineSize];
 		LOG.debug("System initialization was finished successcfully");
@@ -43,26 +45,12 @@ public class Network {
 		this.potentialViruses = potentialViruses;
 	}
 	
-	private double[][] fillArray(int height, int width, double value) {
-		double[][] array = new double[height][width];
-		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				array[i][j] = value;
-			}
-		}
-		return array;
-	}
-	
 	public void educate() {
-		while (true) {
-			startEra(knowledges);
+		while (needNewEra()) {
 			LOG.trace("Need new era for education: " + needNewEra());
-			if (needNewEra()) {
-				makeCopies();
-				continue;
-			} else {
-				break;
-			}
+			startEra(knowledges);
+			bCopy = ArrayHelper.creareCopy(b);
+			tCopy = ArrayHelper.creareCopy(t);
 		}
 	}
 	
@@ -77,14 +65,10 @@ public class Network {
 
 	private void executeEducation(double[] input, double[] UinputY) {
 		int neuronWinner = findNeuronWinner(UinputY);
-
 		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
-
 		double neuronNorma = countNorma(UoutZ);
 		double inputNorma = countNorma(input);
-
 		LOG.trace("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
-
 		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
 		LOG.trace("newImage: " + newImage);
 
@@ -99,19 +83,6 @@ public class Network {
 	
 	private boolean needNewEra() {
 		return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
-	}
-
-	private void makeCopies() {
-		for (int i = 0; i < b.length; i++) {
-			for (int j = 0; j < b[i].length; j++) {
-				bCopy[i][j] = b[i][j];
-			}
-		}
-		for (int i = 0; i < t.length; i++) {
-			for (int j = 0; j < t[i].length; j++) {
-				tCopy[i][j] = t[i][j];
-			}
-		}
 	}
 
 	public List<Double[]> findViruses() {
@@ -143,7 +114,7 @@ public class Network {
 		}
 		return false;
 	}
-
+	
 	private void updateKnowledges(int neuronWinner, double[] UoutZ,
 			double neuronNorma) {
 		for (int j = 0; j < b.length; j++) {
@@ -154,6 +125,7 @@ public class Network {
 		}
 		LOG.trace("Knowledges were updated");
 	}
+	
 
 	private static double[] countUOutZ(double[] inputLine, double[] t) {
 		double[] UoutZ = Arrays.copyOf(inputLine, inputLine.length);
@@ -162,6 +134,7 @@ public class Network {
 		}
 		return UoutZ;
 	}
+	
 
 	private boolean isImageIdentified(double inputNorma, double neuronNorma) {
 		return (neuronNorma / inputNorma) > p;
@@ -176,9 +149,9 @@ public class Network {
 			}
 			j[i] = resultJ;
 		}
-		// System.out.println("J results: " + Arrays.toString(j));
 		return j;
 	}
+	
 
 	private int findNeuronWinner(double[] j) {
 		double maxDoubleValue = Double.MIN_VALUE;
@@ -193,6 +166,7 @@ public class Network {
 		return index;
 	}
 
+	
 	private double countNorma(double[] inputVector) {
 		double norma = 0;
 		for (double i : inputVector) {

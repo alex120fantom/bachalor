@@ -8,7 +8,6 @@ import static ua.kh.khpi.alex_babenko.utils.PropertyEnum.NEURON_SIMILARITY_COFFI
 import java.io.IOException;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
 import ua.kh.khpi.alex_babenko.art.Network;
