@@ -1,4 +1,4 @@
-package ua.kh.khpi.alex_babenko.art;
+package ua.kh.khpi.alex_babenko.utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -11,11 +11,9 @@ import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 
-import ua.kh.khpi.alex_babenko.Main;
-
-public class Util {
+public class FileHelper {
 	
-	private static final Logger LOG = Logger.getLogger(Util.class);
+	private static final Logger LOG = Logger.getLogger(FileHelper.class);
 	
 	public static double[][] readMatrixFromFile(String filename)
 			throws IOException {
@@ -23,6 +21,7 @@ public class Util {
 		int n = countElements(filename);
 		double[][] matrix = new double[m][n];
 		try {
+			@SuppressWarnings("resource")
 			Scanner input = new Scanner(new File(filename));
 			while (input.hasNextLine()) {
 				for (int i = 0; i < m; i++) {

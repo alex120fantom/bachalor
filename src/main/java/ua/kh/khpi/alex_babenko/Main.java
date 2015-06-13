@@ -9,7 +9,6 @@ import org.apache.log4j.Logger;
 
 import ua.kh.khpi.alex_babenko.art.Program;
 import ua.kh.khpi.alex_babenko.utils.PropertiesHelper;
-import ua.kh.khpi.alex_babenko.utils.PropertyEnum;
 
 public class Main {
 

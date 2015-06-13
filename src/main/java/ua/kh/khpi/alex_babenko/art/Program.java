@@ -12,6 +12,7 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import ua.kh.khpi.alex_babenko.utils.FileHelper;
 import ua.kh.khpi.alex_babenko.utils.PropertiesHelper;
 import ua.kh.khpi.alex_babenko.utils.PropertyEnum;
 
@@ -47,9 +48,9 @@ public class Program implements Runnable {
 	private void initializeSystem() {
 		LOG.debug("System initialization was started");
 		try {
-			this.m = Util.countLines(fileName);
-			this.n = Util.countElements(fileName);
-			input = Util.readMatrixFromFile(fileName);
+			this.m = FileHelper.countLines(fileName);
+			this.n = FileHelper.countElements(fileName);
+			input = FileHelper.readMatrixFromFile(fileName);
 		} catch (IOException e) {
 			LOG.error(e);
 		}
@@ -130,7 +131,7 @@ public class Program implements Runnable {
 		double neuronNorma = countNorma(UoutZ);
 		double inputNorma = countNorma(input);
 
-		// System.out.println("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
+		LOG.trace("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
 
 		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
 		LOG.trace("newImage: " + newImage);
@@ -163,7 +164,7 @@ public class Program implements Runnable {
 
 	private List<Double[]> identify() {
 		try {
-			double[][] potentialViruses = Util.readMatrixFromFile(fileNamePotentialViruses);
+			double[][] potentialViruses = FileHelper.readMatrixFromFile(fileNamePotentialViruses);
 			return findViruses(potentialViruses);
 		} catch (IOException e) {
 			LOG.error(e);
