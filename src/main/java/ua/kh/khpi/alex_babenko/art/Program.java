@@ -1,5 +1,8 @@
 package ua.kh.khpi.alex_babenko.art;
 
+import static ua.kh.khpi.alex_babenko.utils.PropertyEnum.NEURON_ADAPTATION_PARAMETER;
+import static ua.kh.khpi.alex_babenko.utils.PropertyEnum.NEURON_SIMILARITY_COFFICIENT;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -9,11 +12,14 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 
+import ua.kh.khpi.alex_babenko.utils.PropertiesHelper;
+import ua.kh.khpi.alex_babenko.utils.PropertyEnum;
+
 public class Program implements Runnable {
 	
 	private static final Logger LOG = Logger.getLogger(Program.class);
 
-	private static final long ONE_MINUTE = 60_000L;
+	private static final long READING_TIMEOUT = parseReadingTimeout();
 	private double[][] input = null;
 	private String fileName;
 
@@ -51,15 +57,27 @@ public class Program implements Runnable {
 		this.t = new double[m][n];
 		this.bCopy = new double[n][m];
 		this.tCopy = new double[m][n];
-		this.L = 2;
-		this.p = 0.9;
+		this.L = parseL();
+		this.p = parseP();
 		this.w1 = 1 / (1 + n.doubleValue()); // изначальные веса
 		this.w2 = 1;
 		fillB();
 		fillT();
 		LOG.debug("System initialization was finished successcfully");
 	}
+
+	private double parseP() {
+		return Double.parseDouble(PropertiesHelper.getPropertyByCode(NEURON_SIMILARITY_COFFICIENT));
+	}
+
+	private double parseL() {
+		return Double.parseDouble(PropertiesHelper.getPropertyByCode(NEURON_ADAPTATION_PARAMETER));
+	}
 	
+	private static long parseReadingTimeout() {
+		return Long.parseLong(PropertiesHelper.getPropertyByCode(PropertyEnum.FILE_READING_TIMEOUT));
+	}
+
 	private double[][] fillB() {
 		for (int i = 0; i < b.length; i++) {
 			for (int j = 0; j < b[i].length; j++) {
@@ -259,7 +277,7 @@ public class Program implements Runnable {
 			printResult(viruses);
 			try {
 				LOG.info("Waiting for the next file.");
-				Thread.sleep(ONE_MINUTE);
+				Thread.sleep(READING_TIMEOUT);
 			} catch (InterruptedException e) {
 				LOG.error(e);
 			}
