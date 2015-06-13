@@ -43,7 +43,7 @@ public class Program implements Runnable {
 		this.bCopy = new double[n][m];
 		this.tCopy = new double[m][n];
 		this.L = 2;
-		this.p = 0.75;
+		this.p = 0.9;
 		this.w1 = 1 / (1 + n.doubleValue()); // изначальные веса
 		this.w2 = 1;
 		fillB();
