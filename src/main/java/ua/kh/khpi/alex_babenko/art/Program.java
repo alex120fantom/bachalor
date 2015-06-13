@@ -1,11 +1,13 @@
 package ua.kh.khpi.alex_babenko.art;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
-
-import ua.kh.khpi.alex_babenko.Main;
 
 public class Program implements Runnable {
 	
@@ -141,20 +143,25 @@ public class Program implements Runnable {
 		}
 	}
 
-	private void identify() {
+	private List<Double[]> identify() {
 		try {
 			double[][] potentialViruses = Util.readMatrixFromFile(fileNamePotentialViruses);
-			printViruses(potentialViruses);
+			return findViruses(potentialViruses);
 		} catch (IOException e) {
 			LOG.error(e);
+			throw new RuntimeException(e);
 		}
 	}
 
-	private void printViruses(double[][] potentialViruses) {
+	private List<Double[]> findViruses(double[][] potentialViruses) {
+		List<Double[]> viruses = new ArrayList<>();
 		for (double[] line : potentialViruses) {
 			boolean isVirus = executeIdentifying(line);
-			LOG.warn(Arrays.toString(line) + "is virus: " + isVirus);
+			if (isVirus) {
+				viruses.add(ArrayUtils.toObject(line));
+			}
 		}
+		return viruses;
 	}
 
 	private boolean executeIdentifying(double[] input) {
@@ -234,6 +241,17 @@ public class Program implements Runnable {
 		return norma;
 	}
 
+	private static void printResult(List<Double[]> result) {
+		LOG.warn("VIRUSES: ");
+		for (Double[] doubles : result) {
+			String line = StringUtils.EMPTY;
+			for (Double value : doubles) {
+				line += value.intValue() + " "; 
+			}
+			LOG.warn(line);
+		}
+	}
+	
 	private static void printB(double[][] b) {
 		System.out.println("B: ");
 		for (double[] lineB : b) {
@@ -258,10 +276,11 @@ public class Program implements Runnable {
 	public void run() {
 		this.educate();
 		while (true) {
-			this.identify();
+			List<Double[]> viruses = identify();
+			printResult(viruses);
 			try {
-				Thread.currentThread().sleep(ONE_MINUTE);
 				LOG.info("Waiting for the next file.");
+				Thread.sleep(ONE_MINUTE);
 			} catch (InterruptedException e) {
 				LOG.error(e);
 			}
