@@ -3,7 +3,13 @@ package ua.kh.khpi.alex_babenko.art;
 import java.io.IOException;
 import java.util.Arrays;
 
+import org.apache.log4j.Logger;
+
+import ua.kh.khpi.alex_babenko.Main;
+
 public class Program implements Runnable {
+	
+	private static final Logger LOG = Logger.getLogger(Program.class);
 
 	private static final long ONE_MINUTE = 60_000L;
 	private double[][] input = null;
@@ -31,12 +37,13 @@ public class Program implements Runnable {
 	}
 
 	private void initializeSystem() {
+		LOG.debug("System initialization was started");
 		try {
 			this.m = Util.countLines(fileName);
 			this.n = Util.countElements(fileName);
 			input = Util.readMatrixFromFile(fileName);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error(e);
 		}
 		this.b = new double[n][m];
 		this.t = new double[m][n];
@@ -48,6 +55,7 @@ public class Program implements Runnable {
 		this.w2 = 1;
 		fillB();
 		fillT();
+		LOG.debug("System initialization was finished successcfully");
 	}
 	
 	private double[][] fillB() {
@@ -75,7 +83,7 @@ public class Program implements Runnable {
 	private void educate() {
 		while (true) {
 			startEra(input);
-			// System.out.println("----needNewEra---- " + needNewEra());
+			LOG.trace("Need new era for education: " + needNewEra());
 			if (needNewEra()) {
 				makeCopies();
 				continue;
@@ -86,10 +94,12 @@ public class Program implements Runnable {
 	}
 	
 	private void startEra(double[][] input) {
+		LOG.trace("New education era was started");
 		for (int i = 0; i < input.length; i++) {
 			double[] UinputY = countUinputY(input[i]);
 			executeEducation(input[i], UinputY);
 		}
+		LOG.trace("New education era was finished");
 	}
 
 	private void executeEducation(double[] input, double[] UinputY) {
@@ -103,13 +113,13 @@ public class Program implements Runnable {
 		// System.out.println("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
 
 		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
-		// System.out.println("newImage: " + newImage);
+		LOG.trace("newImage: " + newImage);
 
 		if (newImage) {
 			updateKnowledges(neuronWinner, UoutZ, neuronNorma);
 		} else { // again to find new neuron winner
 			UinputY[neuronWinner] = -1;
-			// System.out.println("!!!!!no such!!!!");
+			LOG.trace("There is no needed neuron! Repeat education.");
 			executeEducation(input, UinputY);
 		}
 	}
@@ -136,15 +146,14 @@ public class Program implements Runnable {
 			double[][] potentialViruses = Util.readMatrixFromFile(fileNamePotentialViruses);
 			printViruses(potentialViruses);
 		} catch (IOException e) {
-			e.printStackTrace();
+			LOG.error(e);
 		}
 	}
 
 	private void printViruses(double[][] potentialViruses) {
 		for (double[] line : potentialViruses) {
 			boolean isVirus = executeIdentifying(line);
-			System.out.println(Arrays.toString(line) + "is virus: "
-					+ isVirus);
+			LOG.warn(Arrays.toString(line) + "is virus: " + isVirus);
 		}
 	}
 
@@ -158,8 +167,7 @@ public class Program implements Runnable {
 		double neuronNorma = countNorma(UoutZ);
 		double inputNorma = countNorma(input);
 
-		System.out.println("neuronNorma=" + neuronNorma + " inputNorma="
-				+ inputNorma);
+		LOG.debug("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
 
 		boolean identified = isImageIdentified(inputNorma, neuronNorma);
 		if (identified) {
@@ -177,6 +185,7 @@ public class Program implements Runnable {
 		for (int j = 0; j < t[neuronWinner].length; j++) {
 			t[neuronWinner][j] = UoutZ[j];
 		}
+		LOG.trace("Knowledges were updated");
 	}
 
 	private static double[] countUOutZ(double[] inputLine, double[] t) {
@@ -213,8 +222,7 @@ public class Program implements Runnable {
 				index = i;
 			}
 		}
-		System.out.println("winner is " + index + " with value = "
-				+ maxDoubleValue);
+		LOG.debug("winner is " + index + " with value = " + maxDoubleValue);
 		return index;
 	}
 
@@ -253,8 +261,9 @@ public class Program implements Runnable {
 			this.identify();
 			try {
 				Thread.currentThread().sleep(ONE_MINUTE);
+				LOG.info("Waiting for the next file.");
 			} catch (InterruptedException e) {
-				e.printStackTrace();
+				LOG.error(e);
 			}
 		}
 	}

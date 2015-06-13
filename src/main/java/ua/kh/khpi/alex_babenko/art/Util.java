@@ -9,7 +9,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
 
+import org.apache.log4j.Logger;
+
+import ua.kh.khpi.alex_babenko.Main;
+
 public class Util {
+	
+	private static final Logger LOG = Logger.getLogger(Util.class);
+	
 	public static double[][] readMatrixFromFile(String filename)
 			throws IOException {
 		int m = countLines(filename);
@@ -23,12 +30,13 @@ public class Util {
 						try {
 							matrix[i][j] = input.nextDouble();
 						} catch (java.util.NoSuchElementException e) {
+							LOG.warn(e);
 						}
 					}
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (RuntimeException e) {
+			LOG.error(e);
 		}
 		return matrix;
 	}
