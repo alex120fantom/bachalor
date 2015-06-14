@@ -45,6 +45,7 @@ public class Main {
 			LOG.error(e);
 			throw new RuntimeException();
 		}
+		LOG.debug("Network preparation finished");
 		return network;
 	}
 

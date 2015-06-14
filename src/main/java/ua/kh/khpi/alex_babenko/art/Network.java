@@ -125,7 +125,6 @@ public class Network {
 		}
 		LOG.trace("Knowledges were updated");
 	}
-	
 
 	private static double[] countUOutZ(double[] inputLine, double[] t) {
 		double[] UoutZ = Arrays.copyOf(inputLine, inputLine.length);
@@ -134,7 +133,6 @@ public class Network {
 		}
 		return UoutZ;
 	}
-	
 
 	private boolean isImageIdentified(double inputNorma, double neuronNorma) {
 		return (neuronNorma / inputNorma) > p;
@@ -151,7 +149,6 @@ public class Network {
 		}
 		return j;
 	}
-	
 
 	private int findNeuronWinner(double[] j) {
 		double maxDoubleValue = Double.MIN_VALUE;
@@ -165,7 +162,6 @@ public class Network {
 		LOG.debug("winner is " + index + " with value = " + maxDoubleValue);
 		return index;
 	}
-
 	
 	private double countNorma(double[] inputVector) {
 		double norma = 0;
