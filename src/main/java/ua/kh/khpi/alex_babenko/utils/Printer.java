@@ -10,7 +10,7 @@ public class Printer {
 	private static final Logger LOG = Logger.getLogger(Printer.class);
 	
 	public static void printResult(List<Double[]> result) {
-		LOG.warn("VIRUSES: ");
+		LOG.warn("NETWORK ATTACKS: ");
 		for (Double[] doubles : result) {
 			String line = createLine(doubles);
 			LOG.warn(line);

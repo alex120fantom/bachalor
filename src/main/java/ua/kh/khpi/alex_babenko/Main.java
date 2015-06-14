@@ -8,9 +8,11 @@ import static ua.kh.khpi.alex_babenko.utils.PropertyEnum.NEURON_SIMILARITY_COFFI
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import ua.kh.khpi.alex_babenko.art.Network;
+import ua.kh.khpi.alex_babenko.exceptions.EmptyDataException;
 import ua.kh.khpi.alex_babenko.utils.FileHelper;
 import ua.kh.khpi.alex_babenko.utils.Printer;
 import ua.kh.khpi.alex_babenko.utils.PropertiesHelper;
@@ -40,7 +42,7 @@ public class Main {
 			double p = Double.parseDouble(P_STRING);
 			double L = Double.parseDouble(L_STRING);
 			network = new Network(lines, lineSize, knowleges, p, L);
-			network.setPotentialViruses(FileHelper.readMatrixFromFile(FILE_VIRUSES_NAME));
+			network.setPotentialViruses(readFile());
 		} catch (IOException e) {
 			LOG.error(e);
 			throw new RuntimeException();
@@ -57,15 +59,22 @@ public class Main {
 				Printer.printResult(viruses);
 				LOG.info("Waiting for the next file.");
 				Thread.sleep(READING_TIMEOUT);
-				network.setPotentialViruses(FileHelper.readMatrixFromFile(FILE_VIRUSES_NAME));
+				network.setPotentialViruses(readFile());
 			} catch (InterruptedException | IOException e) {
 				LOG.error(e);
+			} catch (EmptyDataException e) {
+				LOG.info(e.getMessage());
+				continue;
 			}
 		}
 	}
 
-	
-	
-	
+	private static double[][] readFile() throws IOException {
+		double[][] result = FileHelper.readMatrixFromFile(FILE_VIRUSES_NAME);
+		if (ArrayUtils.isNotEmpty(result) && ArrayUtils.isNotEmpty(result[0])) {
+			return result;
+		}
+		throw new EmptyDataException("No info in the file");
+	}
 
 }

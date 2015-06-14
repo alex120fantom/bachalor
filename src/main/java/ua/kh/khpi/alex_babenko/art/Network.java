@@ -48,26 +48,26 @@ public class Network {
 	public void educate() {
 		while (needNewEra()) {
 			LOG.trace("Need new era for education: " + needNewEra());
-			startEra(knowledges);
+			startEra();
 			bCopy = ArrayHelper.creareCopy(b);
 			tCopy = ArrayHelper.creareCopy(t);
 		}
 	}
 	
-	private void startEra(double[][] input) {
+	private void startEra() {
 		LOG.trace("New education era was started");
-		for (int i = 0; i < input.length; i++) {
-			double[] UinputY = countUinputY(input[i]);
-			executeEducation(input[i], UinputY);
+		for (int i = 0; i < knowledges.length; i++) {
+			double[] UinputY = countUinputY(knowledges[i]);
+			executeEducation(knowledges[i], UinputY);
 		}
 		LOG.trace("New education era was finished");
 	}
 
-	private void executeEducation(double[] input, double[] UinputY) {
+	private void executeEducation(double[] knowledgesLine, double[] UinputY) {
 		int neuronWinner = findNeuronWinner(UinputY);
-		double[] UoutZ = countUOutZ(input, t[neuronWinner]);
+		double[] UoutZ = countUOutZ(knowledgesLine, t[neuronWinner]);
 		double neuronNorma = countNorma(UoutZ);
-		double inputNorma = countNorma(input);
+		double inputNorma = countNorma(knowledgesLine);
 		LOG.trace("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
 		boolean newImage = isImageIdentified(inputNorma, neuronNorma);
 		LOG.trace("newImage: " + newImage);
@@ -77,7 +77,7 @@ public class Network {
 		} else { // again to find new neuron winner
 			UinputY[neuronWinner] = -1;
 			LOG.trace("There is no needed neuron! Repeat education.");
-			executeEducation(input, UinputY);
+			executeEducation(knowledgesLine, UinputY);
 		}
 	}
 	
@@ -117,6 +117,9 @@ public class Network {
 	
 	private void updateKnowledges(int neuronWinner, double[] UoutZ,
 			double neuronNorma) {
+		LOG.trace("Current knowledges size: [" + 
+				knowledges.length + " x " + 
+				knowledges[0].length + "]");
 		for (int j = 0; j < b.length; j++) {
 			b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
 		}
@@ -124,6 +127,7 @@ public class Network {
 			t[neuronWinner][j] = UoutZ[j];
 		}
 		LOG.trace("Knowledges were updated");
+		
 	}
 
 	private static double[] countUOutZ(double[] inputLine, double[] t) {
@@ -159,7 +163,7 @@ public class Network {
 				index = i;
 			}
 		}
-		LOG.debug("winner is " + index + " with value = " + maxDoubleValue);
+		LOG.trace("winner is " + index + " with value = " + maxDoubleValue);
 		return index;
 	}
 	
