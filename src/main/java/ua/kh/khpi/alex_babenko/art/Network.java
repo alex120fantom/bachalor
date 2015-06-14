@@ -46,12 +46,14 @@ public class Network {
 	}
 	
 	public void educate() {
+		LOG.debug("Start network education");
 		while (needNewEra()) {
 			LOG.trace("Need new era for education: " + needNewEra());
 			startEra();
 			bCopy = ArrayHelper.creareCopy(b);
 			tCopy = ArrayHelper.creareCopy(t);
 		}
+		LOG.debug("Finish network education");
 	}
 	
 	private void startEra() {
