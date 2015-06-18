@@ -1,2 +1,2 @@
-How ti start:
-java -jar -Dlog4j.configuration=file:/home/alex120/Documents/Bachalor/src/main/resources/loj.properties target/Bachalor.jar
+How to start:
+java -jar -Dlog4j.configuration=file:/home/alex120/Documents/Bachalor/src/main/resources/log4j.properties target/Bachalor.jar
