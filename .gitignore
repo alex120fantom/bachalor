@@ -17,6 +17,10 @@ hs_err_pid*
 .classpath
 .project
 
+## Intelij IDEA ##
+*.iml
+.idea/
+
 # Maven
 /logs/
 /target/
