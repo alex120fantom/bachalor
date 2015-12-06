@@ -1,2 +1,5 @@
+First step: build with maven
+mvn install
+
 How to start:
 java -jar -Dlog4j.configuration=file:src/main/resources/log4j.properties target/Bachalor.jar
