@@ -11,7 +11,11 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.scheduling.annotation.Scheduled;
 import ua.kh.khpi.alex_babenko.art.Network;
+import ua.kh.khpi.alex_babenko.config.Config;
 import ua.kh.khpi.alex_babenko.exceptions.EmptyDataException;
 import ua.kh.khpi.alex_babenko.utils.FileHelper;
 import ua.kh.khpi.alex_babenko.utils.Printer;
@@ -29,9 +33,10 @@ public class Main {
 
 	public static void main(String[] args) {
 		LOG.info("Main started");
-		Network network = prepareNetwork();
-		executeNetwork(network);
-	}
+//		Network network = prepareNetwork();
+//		executeNetwork(network);
+        ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
+    }
 
 	private static Network prepareNetwork() {
 		Network network = null;
@@ -53,23 +58,26 @@ public class Main {
 
 	private static void executeNetwork(Network network) {
 		network.educate();
-		while (true) {
-			try {
-				List<Double[]> viruses = network.findViruses();
-				Printer.printResult(viruses);
-				LOG.info("Waiting for the next file.");
-				Thread.sleep(READING_TIMEOUT);
-				network.setPotentialViruses(readFile());
-			} catch (InterruptedException | IOException e) {
-				LOG.error(e);
-			} catch (EmptyDataException e) {
-				LOG.info(e.getMessage());
-				continue;
-			}
-		}
+        execute(network);
 	}
 
-	private static double[][] readFile() throws IOException {
+    @Scheduled(fixedDelayString = "${file.reading.timeout}")
+    private static void execute(Network network) {
+        try {
+            List<Double[]> viruses = network.findViruses();
+            Printer.printResult(viruses);
+            LOG.info("Waiting for the next file.");
+            Thread.sleep(READING_TIMEOUT);
+            network.setPotentialViruses(readFile());
+        } catch (InterruptedException | IOException e) {
+            LOG.error(e);
+        } catch (EmptyDataException e) {
+            LOG.info(e.getMessage());
+            return;
+        }
+    }
+
+    private static double[][] readFile() throws IOException {
 		double[][] result = FileHelper.readMatrixFromFile(FILE_VIRUSES_NAME);
 		if (ArrayUtils.isNotEmpty(result) && ArrayUtils.isNotEmpty(result[0])) {
 			return result;
