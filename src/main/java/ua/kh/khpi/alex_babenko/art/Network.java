@@ -1,5 +1,6 @@
 package ua.kh.khpi.alex_babenko.art;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,39 +8,53 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 import ua.kh.khpi.alex_babenko.utils.ArrayHelper;
+import ua.kh.khpi.alex_babenko.utils.FileHelper;
 
+import javax.annotation.PostConstruct;
+
+@Component
 public class Network {
-	
+
+    @Value("${file.knowledge}")
+    private String fileKnowledgeName;
+    @Value("${file.viruses}")
+    private String fileVirusesName;
+
 	private static final Logger LOG = Logger.getLogger(Network.class);
+    private double[][] knowledges;
 
-	private double[][] knowledges;
 	private double[][] potentialViruses;
+    private double[][] b; // коефициенты весов
+    private double[][] t; // значения
+    private double[][] bCopy; // коефициенты весов;
 
-	private double[][] b; // коефициенты весов
-	private double[][] t; // значения
-	private double[][] bCopy; // коефициенты весов;
 	private double[][] tCopy; // значения
 
+    @Value("${neuron.adaptation.parameter}")
 	private double L;
+    @Value("${nueron.similarity.coefficient}")
 	private double p;
 
-	private double w1; // изначальные веса
+    private double w1; // изначальные веса
 	private double w2;
-	
-	public Network(int lines, Integer lineSize, double[][] knowleges, double p, double L) {
-		LOG.debug("System initialization was started");
-		this.knowledges = knowleges;
-		this.p = p;
-		this.L = L;
-		this.w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
-		this.w2 = 1;
-		this.b = ArrayHelper.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
-		this.t = ArrayHelper.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
-		this.bCopy = new double[lineSize][lines];
-		this.tCopy = new double[lines][lineSize];
-		LOG.debug("System initialization was finished successcfully");
-	}
+
+    @PostConstruct
+    public void setUp() throws IOException {
+        int lines = FileHelper.countLines(fileKnowledgeName);
+        Integer lineSize = FileHelper.countLineSize(fileKnowledgeName);
+        this.knowledges = FileHelper.readMatrixFromFile(fileKnowledgeName);
+
+        this.w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
+        this.w2 = 1;
+        this.b = ArrayHelper.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
+        this.t = ArrayHelper.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
+        this.bCopy = new double[lineSize][lines];
+        this.tCopy = new double[lines][lineSize];
+        potentialViruses = FileHelper.readMatrixFromFile(fileVirusesName);
+    }
 
 	public void setPotentialViruses(double[][] potentialViruses) {
 		this.potentialViruses = potentialViruses;
