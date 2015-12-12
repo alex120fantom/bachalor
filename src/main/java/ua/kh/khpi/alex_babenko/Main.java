@@ -7,6 +7,7 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.log4j.Logger;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 import ua.kh.khpi.alex_babenko.art.Network;
 import ua.kh.khpi.alex_babenko.config.Config;
 import ua.kh.khpi.alex_babenko.exceptions.EmptyDataException;
-import ua.kh.khpi.alex_babenko.utils.FileHelper;
+import ua.kh.khpi.alex_babenko.services.FileService;
 import ua.kh.khpi.alex_babenko.utils.Printer;
 
 @Component
@@ -25,14 +26,13 @@ public class Main {
 
     @Value("${file.viruses}")
 	private String fileVirusesName;
+    @Autowired
+    private FileService fileService;
 
     private static Network network;
 
 	public static void main(String[] args) {
 		LOG.info("Main started");
-//		Network network = prepareNetwork();
-//        network.educate();
-//		executeNetwork(network);
         ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
         network = context.getBean(Network.class);
         network.educate();
@@ -56,7 +56,7 @@ public class Main {
     }
 
     private double[][] readFile() throws IOException {
-		double[][] result = FileHelper.readMatrixFromFile(fileVirusesName);
+		double[][] result = fileService.readMatrixFromFile(fileVirusesName);
 		if (ArrayUtils.isNotEmpty(result) && ArrayUtils.isNotEmpty(result[0])) {
 			return result;
 		}

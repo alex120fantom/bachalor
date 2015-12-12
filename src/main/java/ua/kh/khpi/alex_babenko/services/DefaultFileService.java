@@ -1,4 +1,4 @@
-package ua.kh.khpi.alex_babenko.utils;
+package ua.kh.khpi.alex_babenko.services;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -10,12 +10,15 @@ import java.io.InputStream;
 import java.util.Scanner;
 
 import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
 
-public class FileHelper {
+@Service
+public class DefaultFileService implements FileService {
 	
-	private static final Logger LOG = Logger.getLogger(FileHelper.class);
-	
-	public static double[][] readMatrixFromFile(String filename)
+	private static final Logger LOG = Logger.getLogger(DefaultFileService.class);
+
+	@Override
+    public double[][] readMatrixFromFile(String filename)
 			throws IOException {
 		int m = countLines(filename);
 		int n = countLineSize(filename);
@@ -40,7 +43,8 @@ public class FileHelper {
 		return matrix;
 	}
 
-	public static int countLines(String filename) throws IOException {
+	@Override
+    public int countLines(String filename) throws IOException {
 		InputStream is = new BufferedInputStream(new FileInputStream(filename));
 		try {
 			byte[] c = new byte[1024];
@@ -61,7 +65,8 @@ public class FileHelper {
 		}
 	}
 
-	public static int countLineSize(String filename) throws IOException {
+	@Override
+    public int countLineSize(String filename) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filename));
 		String line;
 		try {
