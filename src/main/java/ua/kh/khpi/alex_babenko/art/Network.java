@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import ua.kh.khpi.alex_babenko.art.entity.Knowledge;
 import ua.kh.khpi.alex_babenko.art.entity.Line;
 import ua.kh.khpi.alex_babenko.art.service.CalculationService;
+import ua.kh.khpi.alex_babenko.art.service.ImageDetectionService;
 import ua.kh.khpi.alex_babenko.art.service.KnowledgeService;
 import ua.kh.khpi.alex_babenko.services.ArrayService;
 import ua.kh.khpi.alex_babenko.services.FileService;
@@ -28,12 +29,6 @@ public class Network {
     @Value("${file.knowledge}")
     private String fileKnowledgeName;
 
-    @Value("${neuron.adaptation.parameter}")
-	private double L;
-
-    @Value("${nueron.similarity.coefficient}")
-	private double p;
-
     @Autowired
     private FileService fileService;
     @Autowired
@@ -41,9 +36,9 @@ public class Network {
     @Autowired
     private Knowledge virusesKnowledge;
     @Autowired
-    private CalculationService calculationService;
-    @Autowired
     private KnowledgeService knowledgeService;
+    @Autowired
+    private ImageDetectionService imageDetectionService;
 
     @PostConstruct
     public void setUp() throws IOException {
@@ -63,34 +58,8 @@ public class Network {
 
 
 	public List<Double[]> findViruses(double[][] potentialViruses) {
-		List<Double[]> viruses = new ArrayList<>();
-		for (double[] line : potentialViruses) {
-			if (isVirus(line)) {
-				viruses.add(ArrayUtils.toObject(line));
-			}
-		}
-		return viruses;
-	}
+        return imageDetectionService.findViruses(potentialViruses, virusesKnowledge);
+    }
 
-	private boolean isVirus(double[] input) {
-		double[] UinputY = calculationService.countUinputY(input, virusesKnowledge);
-		int neuronWinner = calculationService.findNeuronWinnerIndex(UinputY);
-		if (neuronWinner < 0) {
-			return false;
-		}
-        Line nueronWinnerLineT = virusesKnowledge.getT().get(neuronWinner);
-        double[] UoutZ = calculationService.countUOutZ(input, nueronWinnerLineT);
-		double neuronNorma = calculationService.countNorma(UoutZ);
-		double inputNorma = calculationService.countNorma(input);
-
-		LOG.debug("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
-
-		boolean identified = calculationService.isImageIdentified(inputNorma, neuronNorma);
-		if (identified) {
-			knowledgeService.updateKnowledges(neuronWinner, UoutZ, neuronNorma, virusesKnowledge);
-			return true;
-		}
-		return false;
-	}
 
 }
