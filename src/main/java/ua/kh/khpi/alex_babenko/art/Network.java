@@ -49,7 +49,6 @@ public class Network {
         int lines = fileService.countLines(fileKnowledgeName);
         Integer lineSize = fileService.countLineSize(fileKnowledgeName);
 
-        this.knowledges = fileService.readMatrixFromFile(fileKnowledgeName);
         double w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
         double w2 = 1;
         this.b = arrayService.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
@@ -58,11 +57,11 @@ public class Network {
         this.tCopy = new double[lines][lineSize];
     }
 
-	public void educate() {
+	public void educate(double[][] knowledges) {
 		LOG.debug("Start network education");
 		while (needNewEra()) {
 			LOG.trace("Need new era for education: " + needNewEra());
-			startEra();
+			startEra(knowledges);
 			bCopy = arrayService.createCopy(b);
 			tCopy = arrayService.createCopy(t);
 		}
@@ -73,7 +72,7 @@ public class Network {
         return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
     }
 
-	private void startEra() {
+	private void startEra(double[][] knowledges) {
 		LOG.trace("New education era was started");
         for (double[] knowledge : knowledges) {
             double[] UinputY = countUinputY(knowledge);
@@ -101,7 +100,6 @@ public class Network {
 	}
 
     private void updateKnowledges(int neuronWinner, double[] UoutZ, double neuronNorma) {
-        LOG.trace(format("Current knowledges size: [{0} x {1}]", knowledges.length, knowledges[0].length));
         for (int j = 0; j < b.length; j++) {
             b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
         }
