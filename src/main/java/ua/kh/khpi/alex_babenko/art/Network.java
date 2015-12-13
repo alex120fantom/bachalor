@@ -56,9 +56,9 @@ public class Network {
 
 	public void educate(double[][] knowledges) {
 		LOG.debug("Start network education");
-		while (needNewEra()) {
-			LOG.trace("Need new era for education: " + needNewEra());
-			startEra(knowledges);
+        while (needNewEra()) {
+            LOG.debug("Need new era for education: " + needNewEra());
+            startEra(knowledges);
 
 			bCopy = arrayService.createCopy(b);
 			tCopy = arrayService.createCopy(t);
@@ -67,7 +67,7 @@ public class Network {
 	}
 
     private boolean needNewEra() {
-        return (b.containsAll(bCopy) && bCopy.containsAll(b)) || (t.containsAll(tCopy) && tCopy.containsAll(t));
+        return !((b.containsAll(bCopy) && bCopy.containsAll(b)) || (t.containsAll(tCopy) && tCopy.containsAll(t)));
     }
 
 	private void startEra(double[][] knowledges) {

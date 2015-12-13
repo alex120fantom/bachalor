@@ -7,7 +7,6 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 import org.springframework.stereotype.Component;
 import ua.kh.khpi.alex_babenko.config.Config;
 
-@Component
 public class Main {
 	
 	private static final Logger LOG = Logger.getLogger(Main.class);
@@ -18,6 +17,5 @@ public class Main {
         App app = context.getBean(App.class);
         app.start();
     }
-
 
 }
