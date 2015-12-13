@@ -1,8 +1,12 @@
 package ua.kh.khpi.alex_babenko.services;
 
+import ua.kh.khpi.alex_babenko.art.entity.Line;
+
+import java.util.List;
+
 public interface ArrayService {
 
-    double[][] createCopy(double[][] source);
+    List<Line> createCopy(List<Line> source);
 
-    double[][] fillArray(int height, int width, double value);
+    List<Line> buildLineMatrix(int height, int width, double value);
 }

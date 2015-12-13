@@ -1,29 +1,41 @@
 package ua.kh.khpi.alex_babenko.services;
 
+import org.apache.commons.lang3.SerializationUtils;
 import org.springframework.stereotype.Service;
+import ua.kh.khpi.alex_babenko.art.entity.Line;
 
-import java.util.Arrays;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 public class DefaultArrayService implements ArrayService {
 
 	@Override
-    public double[][] createCopy(double[][] source) {
-        return Arrays.stream(source)
-                .map(double[]::clone)
-                .toArray(double[][]::new);
+    public List<Line> createCopy(List<Line> source) {
+        return source.stream()
+                .map(SerializationUtils::clone)
+                .collect(toList());
     }
 
 
     @Override
-    public double[][] fillArray(int height, int width, double value) {
-		double[][] array = new double[height][width];
+    public List<Line> buildLineMatrix(int height, int width, double value) {
+
+        Line line = new Line();
+        List<BigDecimal> lineValue = new ArrayList<>();
+        for (int i = 0; i < width; i++) {
+            lineValue.add(BigDecimal.valueOf(value));
+        }
+        line.setLineValue(lineValue);
+
+        List<Line> lines = new ArrayList<>();
         for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
-				array[i][j] = value;
-			}
-		}
-		return array;
-	}
+            lines.add(SerializationUtils.clone(line));
+        }
+        return lines;
+    }
 
 }
