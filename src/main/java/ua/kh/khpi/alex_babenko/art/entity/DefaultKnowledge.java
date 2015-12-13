@@ -54,4 +54,14 @@ public class DefaultKnowledge implements Knowledge {
     public void settCopy(List<Line> tCopy) {
         this.tCopy = tCopy;
     }
+
+    @Override
+    public String toString() {
+        return "DefaultKnowledge{" +
+                "b=" + b +
+                ", t=" + t +
+                ", bCopy=" + bCopy +
+                ", tCopy=" + tCopy +
+                '}';
+    }
 }

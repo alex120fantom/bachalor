@@ -4,7 +4,6 @@ import org.apache.log4j.Logger;
 
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import org.springframework.stereotype.Component;
 import ua.kh.khpi.alex_babenko.config.Config;
 
 public class Main {
@@ -14,8 +13,8 @@ public class Main {
 	public static void main(String[] args) {
 		LOG.info("Main started");
         ApplicationContext context = new AnnotationConfigApplicationContext(Config.class);
-        App app = context.getBean(App.class);
-        app.start();
+        Application application = context.getBean(Application.class);
+        application.start();
     }
 
 }

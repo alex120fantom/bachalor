@@ -15,9 +15,9 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class App {
+public class Application {
 
-    private static final Logger LOG = Logger.getLogger(App.class);
+    private static final Logger LOG = Logger.getLogger(Application.class);
 
     @Value("${file.viruses}")
     private String fileVirusesName;

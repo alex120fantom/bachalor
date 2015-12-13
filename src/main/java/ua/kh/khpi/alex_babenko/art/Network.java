@@ -30,11 +30,13 @@ public class Network {
     private String fileKnowledgeName;
 
     @Autowired
+    private Knowledge virusesKnowledge;
+    @Autowired
+    private Knowledge validKnowledge;
+    @Autowired
     private FileService fileService;
     @Autowired
     private ArrayService arrayService;
-    @Autowired
-    private Knowledge virusesKnowledge;
     @Autowired
     private KnowledgeService knowledgeService;
     @Autowired
