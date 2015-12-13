@@ -41,12 +41,11 @@ public class Main {
 
     @Scheduled(fixedDelayString = "${file.reading.timeout}", initialDelayString = "${file.reading.timeout}" )
     private void execute() {
-        LOG.info("fileVirusesName + " + fileVirusesName);
         try {
+            network.setPotentialViruses(readFile());
             List<Double[]> viruses = network.findViruses();
             Printer.printResult(viruses);
             LOG.info("Waiting for the next file.");
-            network.setPotentialViruses(readFile());
         } catch (IOException e) {
             LOG.error(e);
         } catch (EmptyDataException e) {

@@ -31,8 +31,6 @@ public class Network {
 
     @Value("${file.knowledge}")
     private String fileKnowledgeName;
-    @Value("${file.viruses}")
-    private String fileVirusesName;
 
     @Value("${neuron.adaptation.parameter}")
 	private double L;
@@ -59,7 +57,6 @@ public class Network {
         this.t = arrayService.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
         this.bCopy = new double[lineSize][lines];
         this.tCopy = new double[lines][lineSize];
-        potentialViruses = fileService.readMatrixFromFile(fileVirusesName);
     }
 
 	public void setPotentialViruses(double[][] potentialViruses) {

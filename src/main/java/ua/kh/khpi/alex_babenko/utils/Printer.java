@@ -11,14 +11,13 @@ public class Printer {
 	
 	public static void printResult(List<Double[]> result) {
 		LOG.warn("NETWORK ATTACKS: ");
-		for (Double[] doubles : result) {
-			String line = createLine(doubles);
-			LOG.warn(line);
-		}
+        result.stream()
+                .map(Printer::createLine)
+                .forEach(LOG::warn);
 	}
 
 	private static String createLine(Double[] doubles) {
-		String line = StringUtils.EMPTY;
+        String line = StringUtils.EMPTY;
 		for (Double value : doubles) {
 			line += value.intValue() + " "; 
 		}
