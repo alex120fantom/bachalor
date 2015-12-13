@@ -42,8 +42,7 @@ public class Main {
     @Scheduled(fixedDelayString = "${file.reading.timeout}", initialDelayString = "${file.reading.timeout}" )
     private void execute() {
         try {
-            network.setPotentialViruses(readFile());
-            List<Double[]> viruses = network.findViruses();
+            List<Double[]> viruses = network.findViruses(readFile());
             Printer.printResult(viruses);
             LOG.info("Waiting for the next file.");
         } catch (IOException e) {

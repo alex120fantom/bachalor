@@ -1,6 +1,7 @@
 package ua.kh.khpi.alex_babenko.art;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -16,13 +17,14 @@ import ua.kh.khpi.alex_babenko.services.FileService;
 
 import javax.annotation.PostConstruct;
 
+import static java.text.MessageFormat.format;
+
 @Component
 public class Network {
 
 	private static final Logger LOG = Logger.getLogger(Network.class);
 
     private double[][] knowledges;
-	private double[][] potentialViruses;
 
     private double[][] b; // коефициенты весов
     private double[][] t; // значения
@@ -37,9 +39,6 @@ public class Network {
     @Value("${nueron.similarity.coefficient}")
 	private double p;
 
-    private double w1; // изначальные веса
-	private double w2;
-
     @Autowired
     private FileService fileService;
     @Autowired
@@ -49,20 +48,16 @@ public class Network {
     public void setUp() throws IOException {
         int lines = fileService.countLines(fileKnowledgeName);
         Integer lineSize = fileService.countLineSize(fileKnowledgeName);
-        this.knowledges = fileService.readMatrixFromFile(fileKnowledgeName);
 
-        this.w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
-        this.w2 = 1;
+        this.knowledges = fileService.readMatrixFromFile(fileKnowledgeName);
+        double w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
+        double w2 = 1;
         this.b = arrayService.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
         this.t = arrayService.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
         this.bCopy = new double[lineSize][lines];
         this.tCopy = new double[lines][lineSize];
     }
 
-	public void setPotentialViruses(double[][] potentialViruses) {
-		this.potentialViruses = potentialViruses;
-	}
-	
 	public void educate() {
 		LOG.debug("Start network education");
 		while (needNewEra()) {
@@ -73,13 +68,17 @@ public class Network {
 		}
 		LOG.debug("Finish network education");
 	}
-	
+
+    private boolean needNewEra() {
+        return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
+    }
+
 	private void startEra() {
 		LOG.trace("New education era was started");
-		for (int i = 0; i < knowledges.length; i++) {
-			double[] UinputY = countUinputY(knowledges[i]);
-			executeEducation(knowledges[i], UinputY);
-		}
+        for (double[] knowledge : knowledges) {
+            double[] UinputY = countUinputY(knowledge);
+            executeEducation(knowledge, UinputY);
+        }
 		LOG.trace("New education era was finished");
 	}
 
@@ -100,12 +99,20 @@ public class Network {
 			executeEducation(knowledgesLine, UinputY);
 		}
 	}
-	
-	private boolean needNewEra() {
-		return !(Arrays.deepEquals(b, bCopy) || Arrays.deepEquals(t, tCopy));
-	}
 
-	public List<Double[]> findViruses() {
+    private void updateKnowledges(int neuronWinner, double[] UoutZ, double neuronNorma) {
+        LOG.trace(format("Current knowledges size: [{0} x {1}]", knowledges.length, knowledges[0].length));
+        for (int j = 0; j < b.length; j++) {
+            b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
+        }
+        for (int j = 0; j < t[neuronWinner].length; j++) {
+            t[neuronWinner][j] = UoutZ[j];
+        }
+        LOG.trace("Knowledges were updated");
+
+    }
+
+	public List<Double[]> findViruses(double[][] potentialViruses) {
 		List<Double[]> viruses = new ArrayList<>();
 		for (double[] line : potentialViruses) {
 			if (isVirus(line)) {
@@ -134,65 +141,50 @@ public class Network {
 		}
 		return false;
 	}
-	
-	private void updateKnowledges(int neuronWinner, double[] UoutZ,
-			double neuronNorma) {
-		LOG.trace("Current knowledges size: [" + 
-				knowledges.length + " x " + 
-				knowledges[0].length + "]");
-		for (int j = 0; j < b.length; j++) {
-			b[j][neuronWinner] = (L * UoutZ[j]) / (L - 1 + neuronNorma);
-		}
-		for (int j = 0; j < t[neuronWinner].length; j++) {
-			t[neuronWinner][j] = UoutZ[j];
-		}
-		LOG.trace("Knowledges were updated");
-		
-	}
 
-	private static double[] countUOutZ(double[] inputLine, double[] t) {
-		double[] UoutZ = Arrays.copyOf(inputLine, inputLine.length);
-		for (int i = 0; i < UoutZ.length; i++) {
-			UoutZ[i] *= t[i];
-		}
-		return UoutZ;
-	}
+    private double[] countUinputY(double[] inputLine) {
+        double[] j = new double[b[0].length];
+        for (int i = 0; i < b[0].length; i++) {
+            double resultJ = 0;
+            for (int k = 0; k < b.length; k++) {
+                resultJ += inputLine[k] * b[k][i];
+            }
+            j[i] = resultJ;
+        }
+        return j;
+    }
+
+    private int findNeuronWinner(double[] j) {
+        double maxDoubleValue = Double.MIN_VALUE;
+        int index = -1;
+        for (int i = 0; i < j.length; i++) {
+            if (j[i] > maxDoubleValue) {
+                maxDoubleValue = j[i];
+                index = i;
+            }
+        }
+        LOG.trace("winner is " + index + " with value = " + maxDoubleValue);
+        return index;
+    }
+
+    private static double[] countUOutZ(double[] inputLine, double[] t) {
+        double[] UoutZ = Arrays.copyOf(inputLine, inputLine.length);
+        for (int i = 0; i < UoutZ.length; i++) {
+            UoutZ[i] *= t[i];
+        }
+        return UoutZ;
+    }
+
+    private double countNorma(double[] inputVector) {
+        double norma = 0;
+        for (double i : inputVector) {
+            norma += i;
+        }
+        return norma;
+    }
 
 	private boolean isImageIdentified(double inputNorma, double neuronNorma) {
 		return (neuronNorma / inputNorma) > p;
-	}
-
-	private double[] countUinputY(double[] inputLine) {
-		double[] j = new double[b[0].length];
-		for (int i = 0; i < b[0].length; i++) {
-			double resultJ = 0;
-			for (int k = 0; k < b.length; k++) {
-				resultJ += inputLine[k] * b[k][i];
-			}
-			j[i] = resultJ;
-		}
-		return j;
-	}
-
-	private int findNeuronWinner(double[] j) {
-		double maxDoubleValue = Double.MIN_VALUE;
-		int index = -1;
-		for (int i = 0; i < j.length; i++) {
-			if (j[i] > maxDoubleValue) {
-				maxDoubleValue = j[i];
-				index = i;
-			}
-		}
-		LOG.trace("winner is " + index + " with value = " + maxDoubleValue);
-		return index;
-	}
-	
-	private double countNorma(double[] inputVector) {
-		double norma = 0;
-		for (double i : inputVector) {
-			norma += i;
-		}
-		return norma;
 	}
 
 }
