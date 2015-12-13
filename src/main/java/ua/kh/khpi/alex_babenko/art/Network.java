@@ -11,8 +11,8 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ua.kh.khpi.alex_babenko.services.ArrayService;
 import ua.kh.khpi.alex_babenko.services.FileService;
-import ua.kh.khpi.alex_babenko.utils.ArrayHelper;
 
 import javax.annotation.PostConstruct;
 
@@ -44,6 +44,8 @@ public class Network {
 
     @Autowired
     private FileService fileService;
+    @Autowired
+    private ArrayService arrayService;
 
     @PostConstruct
     public void setUp() throws IOException {
@@ -53,8 +55,8 @@ public class Network {
 
         this.w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
         this.w2 = 1;
-        this.b = ArrayHelper.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
-        this.t = ArrayHelper.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
+        this.b = arrayService.fillArray(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
+        this.t = arrayService.fillArray(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
         this.bCopy = new double[lineSize][lines];
         this.tCopy = new double[lines][lineSize];
         potentialViruses = fileService.readMatrixFromFile(fileVirusesName);
@@ -69,8 +71,8 @@ public class Network {
 		while (needNewEra()) {
 			LOG.trace("Need new era for education: " + needNewEra());
 			startEra();
-			bCopy = ArrayHelper.creareCopy(b);
-			tCopy = ArrayHelper.creareCopy(t);
+			bCopy = arrayService.createCopy(b);
+			tCopy = arrayService.createCopy(t);
 		}
 		LOG.debug("Finish network education");
 	}

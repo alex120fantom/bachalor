@@ -24,7 +24,6 @@ public class DefaultFileService implements FileService {
 		int n = countLineSize(filename);
 		double[][] matrix = new double[m][n];
 		try {
-			@SuppressWarnings("resource")
 			Scanner input = new Scanner(new File(filename));
 			while (input.hasNextLine()) {
 				for (int i = 0; i < m; i++) {
