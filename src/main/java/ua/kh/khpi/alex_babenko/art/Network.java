@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import ua.kh.khpi.alex_babenko.art.entity.KnowledgeBase;
 import ua.kh.khpi.alex_babenko.art.entity.Line;
 import ua.kh.khpi.alex_babenko.services.ArrayService;
 import ua.kh.khpi.alex_babenko.services.FileService;
@@ -23,16 +24,12 @@ public class Network {
 
 	private static final Logger LOG = Logger.getLogger(Network.class);
 
-    private List<Line> b; // коефициенты весов
-    private List<Line> t; // значения
-    private List<Line> bCopy; // коефициенты весов;
-	private List<Line> tCopy; // значения
-
     @Value("${file.knowledge}")
     private String fileKnowledgeName;
 
     @Value("${neuron.adaptation.parameter}")
 	private double L;
+
     @Value("${nueron.similarity.coefficient}")
 	private double p;
 
@@ -41,6 +38,9 @@ public class Network {
     @Autowired
     private ArrayService arrayService;
 
+    @Autowired
+    private KnowledgeBase virusesKnowledgeBase;
+
     @PostConstruct
     public void setUp() throws IOException {
         int lines = fileService.countLines(fileKnowledgeName);
@@ -48,10 +48,9 @@ public class Network {
 
         double w1 = 1 / (1 + lineSize.doubleValue()); // изначальные веса
         double w2 = 1;
-        this.b = arrayService.buildLineMatrix(lineSize, lines, w1); 	// m=lineSize - макс. число кластеров
-        this.t = arrayService.buildLineMatrix(lines, lineSize, w2);	// n=lines - размерность входящих векоторов
-        this.bCopy = new ArrayList<>();
-        this.tCopy = new ArrayList<>();
+
+        virusesKnowledgeBase.setB(arrayService.buildLineMatrix(lineSize, lines, w1));
+        virusesKnowledgeBase.setT(arrayService.buildLineMatrix(lines, lineSize, w2));
     }
 
 	public void educate(double[][] knowledges) {
@@ -60,17 +59,26 @@ public class Network {
             LOG.debug("Need new era for education: " + needNewEra());
             startEra(knowledges);
 
-			bCopy = arrayService.createCopy(b);
-			tCopy = arrayService.createCopy(t);
+            virusesKnowledgeBase.setbCopy(arrayService.createCopy(virusesKnowledgeBase.getB()));
+            virusesKnowledgeBase.settCopy(arrayService.createCopy(virusesKnowledgeBase.getT()));
 		}
 		LOG.debug("Finish network education");
 	}
 
     private boolean needNewEra() {
-        return !((b.containsAll(bCopy) && bCopy.containsAll(b)) || (t.containsAll(tCopy) && tCopy.containsAll(t)));
+        return !weightsWereChanged();
     }
 
-	private void startEra(double[][] knowledges) {
+    private boolean weightsWereChanged() {
+        return checkWeighChanges(virusesKnowledgeBase.getB(), virusesKnowledgeBase.getbCopy()) ||
+                checkWeighChanges(virusesKnowledgeBase.getT(), virusesKnowledgeBase.gettCopy());
+    }
+
+    private boolean checkWeighChanges(List<Line> list, List<Line> listCopy) {
+        return list.containsAll(listCopy) && listCopy.containsAll(list);
+    }
+
+    private void startEra(double[][] knowledges) {
 		LOG.trace("New education era was started");
         for (double[] knowledge : knowledges) {
             double[] UinputY = countUinputY(knowledge);
@@ -81,7 +89,8 @@ public class Network {
 
 	private void executeEducation(double[] knowledgesLine, double[] UinputY) {
 		int neuronWinner = findNeuronWinner(UinputY);
-		double[] UoutZ = countUOutZ(knowledgesLine, t.get(neuronWinner));//[neuronWinner]);
+        Line nuronWinnerLine = virusesKnowledgeBase.getT().get(neuronWinner);
+        double[] UoutZ = countUOutZ(knowledgesLine, nuronWinnerLine);//[neuronWinner]);
 		double neuronNorma = countNorma(UoutZ);
 		double inputNorma = countNorma(knowledgesLine);
 		LOG.trace("neuronNorma=" + neuronNorma + " inputNorma=" + inputNorma);
@@ -98,14 +107,15 @@ public class Network {
 	}
 
     private void updateKnowledges(int neuronWinnerIndex, double[] UoutZ, double neuronNorma) {
-        for (int j = 0; j < b.size(); j++) {
+        for (int j = 0; j < virusesKnowledgeBase.getB().size(); j++) {
             BigDecimal newNeuron = BigDecimal.valueOf((L * UoutZ[j]) / (L - 1 + neuronNorma));
-            List<BigDecimal> lineValue = b.get(j).getLineValue();
+            List<BigDecimal> lineValue = virusesKnowledgeBase.getB().get(j).getLineValue();
             lineValue.set(neuronWinnerIndex, newNeuron);
         }
-        for (int j = 0; j < t.get(neuronWinnerIndex).getLineValue().size(); j++) {
-            t.get(neuronWinnerIndex).getLineValue().set(j, BigDecimal.valueOf(UoutZ[j])); //TODO: UoutZ rewrite
-//            t[neuronWinnerIndex][j] = UoutZ[j];
+        for (int j = 0; j < virusesKnowledgeBase.getT().get(neuronWinnerIndex).getLineValue().size(); j++) {
+            Line nuerinWinnerLine = virusesKnowledgeBase.getT().get(neuronWinnerIndex);
+            List<BigDecimal> lineValue = nuerinWinnerLine.getLineValue();
+            lineValue.set(j, BigDecimal.valueOf(UoutZ[j])); //TODO: UoutZ rewrite
         }
         LOG.trace("Knowledges were updated");
 
@@ -127,7 +137,7 @@ public class Network {
 		if (neuronWinner < 0) {
 			return false;
 		}
-		double[] UoutZ = countUOutZ(input, t.get(neuronWinner));
+		double[] UoutZ = countUOutZ(input, virusesKnowledgeBase.getT().get(neuronWinner));
 		double neuronNorma = countNorma(UoutZ);
 		double inputNorma = countNorma(input);
 
@@ -142,12 +152,12 @@ public class Network {
 	}
 
     private double[] countUinputY(double[] inputLine) {
-        int lineSize = b.get(0).getLineValue().size();
+        int lineSize = virusesKnowledgeBase.getB().get(0).getLineValue().size();
         double[] j = new double[lineSize];
         for (int i = 0; i < lineSize; i++) {
             double resultJ = 0;
-            for (int k = 0; k < b.size(); k++) {
-                resultJ += inputLine[k] * b.get(k).getLineValue().get(i).doubleValue(); // TODO //b[k][i];
+            for (int k = 0; k < virusesKnowledgeBase.getB().size(); k++) {
+                resultJ += inputLine[k] * virusesKnowledgeBase.getB().get(k).getLineValue().get(i).doubleValue(); // TODO //b[k][i];
             }
             j[i] = resultJ;
         }
@@ -167,7 +177,7 @@ public class Network {
         return index;
     }
 
-    private static double[] countUOutZ(double[] inputLine, Line t) {
+    private double[] countUOutZ(double[] inputLine, Line t) {
         double[] UoutZ = Arrays.copyOf(inputLine, inputLine.length);
         for (int i = 0; i < UoutZ.length; i++) {
             UoutZ[i] *= t.getLineValue().get(i).doubleValue(); // TODO: rewrite
