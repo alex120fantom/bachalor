@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface ImageDetectionService {
     List<Double[]> findViruses(double[][] potentialViruses, Knowledge knowledge);
+
+    boolean doesImageDetected(double[] input, Knowledge knowledge);
 }

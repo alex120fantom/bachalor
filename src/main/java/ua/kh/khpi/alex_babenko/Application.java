@@ -31,7 +31,7 @@ public class Application {
 
     public void start() {
         try {
-            network.educate(fileService.readMatrixFromFile(fileKnowledgeName));
+            network.educateWithViruses(fileService.readMatrixFromFile(fileKnowledgeName));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

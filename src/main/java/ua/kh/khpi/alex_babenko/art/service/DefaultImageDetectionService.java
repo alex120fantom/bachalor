@@ -24,7 +24,7 @@ public class DefaultImageDetectionService implements ImageDetectionService {
     public List<Double[]> findViruses(double[][] potentialViruses, Knowledge knowledge) {
         List<Double[]> viruses = new ArrayList<>();
         for (double[] line : potentialViruses) {
-            if (isVirus(line, knowledge)) {
+            if (doesImageDetected(line, knowledge)) {
                 viruses.add(ArrayUtils.toObject(line));
             }
         }
@@ -32,7 +32,8 @@ public class DefaultImageDetectionService implements ImageDetectionService {
     }
 
 
-    private boolean isVirus(double[] input, Knowledge knowledge) {
+    @Override
+    public boolean doesImageDetected(double[] input, Knowledge knowledge) {
         double[] UinputY = calculationService.countUinputY(input, knowledge);
         int neuronWinner = calculationService.findNeuronWinnerIndex(UinputY);
         if (neuronWinner < 0) {
