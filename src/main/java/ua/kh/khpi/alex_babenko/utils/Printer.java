@@ -10,7 +10,6 @@ public class Printer {
 	private static final Logger LOG = Logger.getLogger(Printer.class);
 	
 	public static void printResult(List<Double[]> result) {
-		LOG.warn("NETWORK ATTACKS: ");
         result.stream()
                 .map(Printer::createLine)
                 .forEach(LOG::warn);

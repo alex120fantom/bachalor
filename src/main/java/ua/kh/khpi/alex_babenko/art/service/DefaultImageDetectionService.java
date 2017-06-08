@@ -48,6 +48,7 @@ public class DefaultImageDetectionService implements ImageDetectionService {
 
         boolean identified = calculationService.isImageIdentified(inputNorma, neuronNorma);
         if (identified) {
+            LOG.debug("identified=" + identified + ". Updating knowledge" );
             knowledgeService.updateKnowledges(neuronWinner, UoutZ, neuronNorma, knowledge);
             return true;
         }

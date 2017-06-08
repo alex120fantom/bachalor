@@ -26,7 +26,7 @@ public class TimerAspect {
         stopWatch.start();
         Object result = joinPoint.proceed();
         stopWatch.stop();
-        LOG.info(format("Method [{0}] was executed for {1} milliseconds with result [{2}]", joinPoint.getSignature().getName(), stopWatch.getTotalTimeMillis(), result));
+        //LOG.info(format("Method [{0}] was executed for {1} milliseconds with result [{2}]", joinPoint.getSignature().getName(), stopWatch.getTotalTimeMillis(), result));
         return result;
     }
 

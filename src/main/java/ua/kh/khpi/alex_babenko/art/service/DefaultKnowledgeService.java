@@ -25,10 +25,10 @@ public class DefaultKnowledgeService implements KnowledgeService {
         LOG.debug("Start network education");
         while (needNewEra(knowledge)) {
             LOG.debug("Need new era: " + needNewEra(knowledge));
-            startEraForKnowledge(knowledges, knowledge);
 
             knowledge.setbCopy(arrayService.createCopy(knowledge.getB()));
             knowledge.settCopy(arrayService.createCopy(knowledge.getT()));
+            startEraForKnowledge(knowledges, knowledge);
         }
         LOG.debug("Finish network education");
     }
